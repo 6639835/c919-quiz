@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}C919题库练习 - 首页{% endblock %}
+
+{% block content %}
+<div class="quiz-container text-center">
+    <div class="card">
+        <div class="card-body">
+            <h1 class="card-title mb-4">C919飞机机型培训题库练习</h1>
+            <p class="card-text">欢迎使用C919飞机机型培训题库练习系统。这个系统可以帮助您练习并掌握C919飞机的相关知识。</p>
+            
+            {% if progress %}
+            <div class="mt-4 mb-4">
+                <h4 class="mb-3">当前练习进度</h4>
+                <div class="list-group text-start">
+                    {% if 'random' in progress %}
+                        <div class="list-group-item d-flex align-items-center justify-content-between">
+                            <div>
+                                <h5 class="mb-1">随机练习</h5>
+                                <div class="progress" style="height: 10px; width: 200px;">
+                                    <div class="progress-bar" role="progressbar" style="width: {{ progress['random']['percentage'] }}%;" 
+                                        aria-valuenow="{{ progress['random']['percentage'] }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                                <small>已完成 {{ progress['random']['answered'] }} / {{ progress['random']['total'] }} 题 ({{ progress['random']['percentage'] }}%)</small>
+                            </div>
+                            <div>
+                                <a href="{{ url_for('quiz') }}" class="btn btn-primary btn-sm">继续练习</a>
+                                <a href="{{ url_for('review', session_id=progress['random']['session_id']) }}" class="btn btn-info btn-sm ms-1">查看答题</a>
+                                <a href="{{ url_for('reset_topic', topic='random') }}" class="btn btn-outline-danger btn-sm ms-1"
+                                   onclick="return confirm('确定要重置随机练习进度吗？');">重置</a>
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    {% for topic, data in progress.items() %}
+                        {% if topic != 'random' %}
+                        <div class="list-group-item d-flex align-items-center justify-content-between">
+                            <div>
+                                <h5 class="mb-1">{{ topic }}</h5>
+                                <div class="progress" style="height: 10px; width: 200px;">
+                                    <div class="progress-bar" role="progressbar" style="width: {{ data['percentage'] }}%;" 
+                                        aria-valuenow="{{ data['percentage'] }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                                <small>已完成 {{ data['answered'] }} / {{ data['total'] }} 题 ({{ data['percentage'] }}%)</small>
+                            </div>
+                            <div>
+                                <a href="{{ url_for('topic_quiz', topic=topic) }}" class="btn btn-primary btn-sm">继续练习</a>
+                                <a href="{{ url_for('review', session_id=data['session_id']) }}" class="btn btn-info btn-sm ms-1">查看答题</a>
+                                <a href="{{ url_for('reset_topic', topic=topic) }}" class="btn btn-outline-danger btn-sm ms-1"
+                                   onclick="return confirm('确定要重置{{ topic }}练习进度吗？');">重置</a>
+                            </div>
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="row mt-5">
+                <div class="col-md-6">
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">随机练习</h5>
+                            <p class="card-text">从题库中随机抽取题目进行练习。</p>
+                            {% if 'random' in progress %}
+                                <a href="{{ url_for('quiz') }}" class="btn btn-primary">继续练习</a>
+                                <a href="{{ url_for('quiz', new_session='true') }}" class="btn btn-outline-primary">重新开始</a>
+                            {% else %}
+                                <a href="{{ url_for('quiz') }}" class="btn btn-primary">开始练习</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">按主题练习</h5>
+                            <p class="card-text">选择特定主题或子主题进行针对性练习。</p>
+                            <a href="{{ url_for('topics') }}" class="btn btn-primary">选择主题</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            {% if progress %}
+            <div class="mt-3">
+                <a href="{{ url_for('reset') }}" class="btn btn-outline-danger" 
+                    onclick="return confirm('确定要重置所有练习记录吗？这将删除所有练习进度！');">
+                    重置所有记录
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

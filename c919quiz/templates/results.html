@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}C919题库练习 - 结果{% endblock %}
+
+{% block content %}
+<div class="quiz-container">
+    <div class="card">
+        <div class="card-body text-center">
+            <h2 class="card-title mb-4">测试结果</h2>
+            
+            <div class="mb-4">
+                <div class="display-1 mb-3">{{ percentage|round(1) }}%</div>
+                <h4>得分: {{ score }}/{{ total_questions }}</h4>
+                {% if current_topic and current_topic != 'random' %}
+                <p class="badge bg-warning">主题: {{ current_topic }}</p>
+                {% endif %}
+            </div>
+            
+            {% if percentage >= 90 %}
+                <div class="alert alert-success">
+                    <h4>优秀！</h4>
+                    <p>您对C919飞机的知识掌握非常出色！</p>
+                </div>
+            {% elif percentage >= 70 %}
+                <div class="alert alert-info">
+                    <h4>良好！</h4>
+                    <p>您对C919飞机的知识掌握良好，但还有提升空间。</p>
+                </div>
+            {% else %}
+                <div class="alert alert-warning">
+                    <h4>继续努力！</h4>
+                    <p>您对C919飞机的知识掌握需要继续加强。</p>
+                </div>
+            {% endif %}
+            
+            {% if incorrect_questions %}
+            <div class="mt-5 text-start">
+                <h4 class="text-center mb-4">错误题目分析</h4>
+                
+                {% if topic_stats %}
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">错误分布</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group">
+                            {% for topic, stats in topic_stats.items() %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                {{ topic }}
+                                <span class="badge bg-danger rounded-pill">{{ stats.count }}</span>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="accordion" id="incorrectQuestions">
+                    {% for question in incorrect_questions %}
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="heading{{ loop.index }}">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" 
+                                    data-bs-target="#collapse{{ loop.index }}" aria-expanded="false" 
+                                    aria-controls="collapse{{ loop.index }}">
+                                <div>
+                                    问题 {{ loop.index }}: {{ question.question }}
+                                    <div class="small text-muted">
+                                        <span class="badge bg-secondary me-1">{{ question.topic }}</span>
+                                        <span class="badge bg-info">{{ question.subtopic }}</span>
+                                    </div>
+                                </div>
+                            </button>
+                        </h2>
+                        <div id="collapse{{ loop.index }}" class="accordion-collapse collapse" 
+                             aria-labelledby="heading{{ loop.index }}" data-bs-parent="#incorrectQuestions">
+                            <div class="accordion-body">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <h6>选项:</h6>
+                                        <ul class="list-group mb-3">
+                                            {% for choice in question.choices %}
+                                            <li class="list-group-item {% if loop.index0|upper_alpha == question.correct_answer %}list-group-item-success{% elif loop.index0|upper_alpha == question.user_answer %}list-group-item-danger{% endif %}">
+                                                <span class="fw-bold">{{ loop.index0|upper_alpha }}.</span> {{ choice }}
+                                                {% if loop.index0|upper_alpha == question.correct_answer %}
+                                                <span class="badge bg-success float-end">正确答案</span>
+                                                {% elif loop.index0|upper_alpha == question.user_answer %}
+                                                <span class="badge bg-danger float-end">你的答案</span>
+                                                {% endif %}
+                                            </li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="alert alert-info">
+                                            <h6 class="alert-heading">答题情况</h6>
+                                            <p class="mb-0">您选择了: <span class="badge bg-danger">{{ question.user_answer }}</span></p>
+                                            <p class="mb-0">正确答案: <span class="badge bg-success">{{ question.correct_answer }}</span></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="d-grid gap-3 mt-4">
+                <a href="{{ url_for('review', session_id=session_id) }}" class="btn btn-outline-primary">查看全部答题记录</a>
+                {% if current_topic and current_topic != 'random' %}
+                <a href="{{ url_for('topic_quiz', topic=current_topic, new_session='true') }}" class="btn btn-primary">再来一次 (同主题)</a>
+                <a href="{{ url_for('quiz', new_session='true') }}" class="btn btn-outline-secondary">随机练习</a>
+                {% else %}
+                <a href="{{ url_for('quiz', new_session='true') }}" class="btn btn-primary">再来一次</a>
+                {% endif %}
+                <a href="{{ url_for('topics') }}" class="btn btn-outline-secondary">选择特定主题</a>
+                <a href="{{ url_for('index') }}" class="btn btn-outline-dark">返回首页</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 分析错误题目，如果数量较少则自动展开第一题
+        var incorrectQuestions = document.querySelectorAll('#incorrectQuestions .accordion-button');
+        if (incorrectQuestions.length > 0 && incorrectQuestions.length <= 3) {
+            incorrectQuestions[0].click();
+        }
+    });
+</script>
+{% endblock %} 

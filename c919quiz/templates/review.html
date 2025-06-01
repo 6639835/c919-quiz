@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+
+{% block title %}C919题库练习 - 答题记录{% endblock %}
+
+{% block content %}
+<div class="quiz-container">
+    <div class="card">
+        <div class="card-body">
+            <h2 class="card-title mb-4">答题记录</h2>
+            
+            <div class="mb-4">
+                <div class="alert alert-info">
+                    <h5 class="alert-heading mb-2">记录详情</h5>
+                    <p>总题目数: <strong>{{ total_questions }}</strong></p>
+                    <p>已答题数: <strong>{{ review_data|length }}</strong></p>
+                    <p>正确答题数: <strong>{{ review_data|selectattr('is_correct', 'equalto', true)|list|length }}</strong></p>
+                    <p>错误答题数: <strong>{{ review_data|selectattr('is_correct', 'equalto', false)|list|length }}</strong></p>
+                    <p>正确率: <strong>{{ (review_data|selectattr('is_correct', 'equalto', true)|list|length / review_data|length * 100)|round(1) if review_data|length > 0 else 0 }}%</strong></p>
+                </div>
+            </div>
+            
+            <ul class="nav nav-tabs mb-4" id="reviewTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" 
+                            type="button" role="tab" aria-controls="all" aria-selected="true">
+                        全部题目
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="correct-tab" data-bs-toggle="tab" data-bs-target="#correct" 
+                            type="button" role="tab" aria-controls="correct" aria-selected="false">
+                        正确题目
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="incorrect-tab" data-bs-toggle="tab" data-bs-target="#incorrect" 
+                            type="button" role="tab" aria-controls="incorrect" aria-selected="false">
+                        错误题目
+                    </button>
+                </li>
+            </ul>
+            
+            <div class="tab-content" id="reviewTabContent">
+                <!-- 全部题目 -->
+                <div class="tab-pane fade show active" id="all" role="tabpanel" aria-labelledby="all-tab">
+                    <div class="accordion" id="allQuestions">
+                        {% for answer in review_data %}
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingAll{{ loop.index }}">
+                                <button class="accordion-button collapsed {% if answer.is_correct %}bg-success bg-opacity-10{% else %}bg-danger bg-opacity-10{% endif %}" 
+                                        type="button" data-bs-toggle="collapse" 
+                                        data-bs-target="#collapseAll{{ loop.index }}" aria-expanded="false" 
+                                        aria-controls="collapseAll{{ loop.index }}">
+                                    <div>
+                                        <div class="d-flex align-items-center">
+                                            问题 {{ loop.index }}: {{ answer.question }}
+                                            {% if answer.is_correct %}
+                                            <span class="badge bg-success ms-2">正确</span>
+                                            {% else %}
+                                            <span class="badge bg-danger ms-2">错误</span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="small text-muted">
+                                            <span class="badge bg-secondary me-1">{{ answer.topic }}</span>
+                                            <span class="badge bg-info">{{ answer.subtopic }}</span>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseAll{{ loop.index }}" class="accordion-collapse collapse" 
+                                 aria-labelledby="headingAll{{ loop.index }}" data-bs-parent="#allQuestions">
+                                <div class="accordion-body">
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            <h6>选项:</h6>
+                                            <ul class="list-group mb-3">
+                                                {% for choice in answer.choices %}
+                                                <li class="list-group-item {% if loop.index0|upper_alpha == answer.correct_answer %}list-group-item-success{% elif loop.index0|upper_alpha == answer.user_answer %}list-group-item-danger{% endif %}">
+                                                    <span class="fw-bold">{{ loop.index0|upper_alpha }}.</span> {{ choice }}
+                                                    {% if loop.index0|upper_alpha == answer.correct_answer %}
+                                                    <span class="badge bg-success float-end">正确答案</span>
+                                                    {% elif loop.index0|upper_alpha == answer.user_answer %}
+                                                    <span class="badge bg-danger float-end">你的答案</span>
+                                                    {% endif %}
+                                                </li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="alert {% if answer.is_correct %}alert-success{% else %}alert-danger{% endif %}">
+                                                <h6 class="alert-heading">答题情况</h6>
+                                                <p class="mb-0">您选择了: <span class="badge {% if answer.is_correct %}bg-success{% else %}bg-danger{% endif %}">{{ answer.user_answer }}</span></p>
+                                                <p class="mb-0">正确答案: <span class="badge bg-success">{{ answer.correct_answer }}</span></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- 正确题目 -->
+                <div class="tab-pane fade" id="correct" role="tabpanel" aria-labelledby="correct-tab">
+                    <div class="accordion" id="correctQuestions">
+                        {% for answer in review_data if answer.is_correct %}
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingCorrect{{ loop.index }}">
+                                <button class="accordion-button collapsed bg-success bg-opacity-10" 
+                                        type="button" data-bs-toggle="collapse" 
+                                        data-bs-target="#collapseCorrect{{ loop.index }}" aria-expanded="false" 
+                                        aria-controls="collapseCorrect{{ loop.index }}">
+                                    <div>
+                                        <div class="d-flex align-items-center">
+                                            问题 {{ loop.index }}: {{ answer.question }}
+                                            <span class="badge bg-success ms-2">正确</span>
+                                        </div>
+                                        <div class="small text-muted">
+                                            <span class="badge bg-secondary me-1">{{ answer.topic }}</span>
+                                            <span class="badge bg-info">{{ answer.subtopic }}</span>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseCorrect{{ loop.index }}" class="accordion-collapse collapse" 
+                                 aria-labelledby="headingCorrect{{ loop.index }}" data-bs-parent="#correctQuestions">
+                                <div class="accordion-body">
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            <h6>选项:</h6>
+                                            <ul class="list-group mb-3">
+                                                {% for choice in answer.choices %}
+                                                <li class="list-group-item {% if loop.index0|upper_alpha == answer.correct_answer %}list-group-item-success{% endif %}">
+                                                    <span class="fw-bold">{{ loop.index0|upper_alpha }}.</span> {{ choice }}
+                                                    {% if loop.index0|upper_alpha == answer.correct_answer %}
+                                                    <span class="badge bg-success float-end">正确答案</span>
+                                                    {% endif %}
+                                                </li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="alert alert-success">
+                                                <h6 class="alert-heading">答题情况</h6>
+                                                <p class="mb-0">您选择了: <span class="badge bg-success">{{ answer.user_answer }}</span></p>
+                                                <p class="mb-0">正确答案: <span class="badge bg-success">{{ answer.correct_answer }}</span></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <!-- 错误题目 -->
+                <div class="tab-pane fade" id="incorrect" role="tabpanel" aria-labelledby="incorrect-tab">
+                    <div class="accordion" id="incorrectQuestions">
+                        {% for answer in review_data if not answer.is_correct %}
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingIncorrect{{ loop.index }}">
+                                <button class="accordion-button collapsed bg-danger bg-opacity-10" 
+                                        type="button" data-bs-toggle="collapse" 
+                                        data-bs-target="#collapseIncorrect{{ loop.index }}" aria-expanded="false" 
+                                        aria-controls="collapseIncorrect{{ loop.index }}">
+                                    <div>
+                                        <div class="d-flex align-items-center">
+                                            问题 {{ loop.index }}: {{ answer.question }}
+                                            <span class="badge bg-danger ms-2">错误</span>
+                                        </div>
+                                        <div class="small text-muted">
+                                            <span class="badge bg-secondary me-1">{{ answer.topic }}</span>
+                                            <span class="badge bg-info">{{ answer.subtopic }}</span>
+                                        </div>
+                                    </div>
+                                </button>
+                            </h2>
+                            <div id="collapseIncorrect{{ loop.index }}" class="accordion-collapse collapse" 
+                                 aria-labelledby="headingIncorrect{{ loop.index }}" data-bs-parent="#incorrectQuestions">
+                                <div class="accordion-body">
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            <h6>选项:</h6>
+                                            <ul class="list-group mb-3">
+                                                {% for choice in answer.choices %}
+                                                <li class="list-group-item {% if loop.index0|upper_alpha == answer.correct_answer %}list-group-item-success{% elif loop.index0|upper_alpha == answer.user_answer %}list-group-item-danger{% endif %}">
+                                                    <span class="fw-bold">{{ loop.index0|upper_alpha }}.</span> {{ choice }}
+                                                    {% if loop.index0|upper_alpha == answer.correct_answer %}
+                                                    <span class="badge bg-success float-end">正确答案</span>
+                                                    {% elif loop.index0|upper_alpha == answer.user_answer %}
+                                                    <span class="badge bg-danger float-end">你的答案</span>
+                                                    {% endif %}
+                                                </li>
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="alert alert-danger">
+                                                <h6 class="alert-heading">答题情况</h6>
+                                                <p class="mb-0">您选择了: <span class="badge bg-danger">{{ answer.user_answer }}</span></p>
+                                                <p class="mb-0">正确答案: <span class="badge bg-success">{{ answer.correct_answer }}</span></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="d-grid gap-2 mt-4">
+                <a href="{{ url_for('index') }}" class="btn btn-primary">返回首页</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

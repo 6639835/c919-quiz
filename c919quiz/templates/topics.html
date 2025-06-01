@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}C919题库练习 - 选择主题{% endblock %}
+
+{% block content %}
+<div class="quiz-container">
+    <div class="card">
+        <div class="card-body">
+            <h2 class="card-title mb-4">按主题练习</h2>
+            <p class="card-text mb-4">选择一个主题或子主题进行针对性练习：</p>
+            
+            <div class="mb-5">
+                <h4 class="mb-3">主要主题</h4>
+                <div class="list-group">
+                    {% for topic in topics %}
+                    <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="d-flex align-items-center">
+                                {{ topic }}
+                                <span class="badge bg-primary rounded-pill ms-2">主题</span>
+                            </div>
+                            
+                            {% if topic in progress %}
+                            <div class="mt-2">
+                                <div class="progress" style="height: 8px; width: 250px;">
+                                    <div class="progress-bar" role="progressbar" style="width: {{ progress[topic].percentage }}%" 
+                                         aria-valuenow="{{ progress[topic].percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                                <small>已完成: {{ progress[topic].answered }}/{{ progress[topic].total }} 题</small>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            {% if topic in progress and progress[topic].answered > 0 %}
+                                <a href="{{ url_for('topic_quiz', topic=topic) }}" class="btn btn-outline-primary btn-sm">继续练习</a>
+                                <a href="{{ url_for('topic_quiz', topic=topic, new_session='true') }}" class="btn btn-outline-secondary btn-sm">重新开始</a>
+                            {% else %}
+                                <a href="{{ url_for('topic_quiz', topic=topic) }}" class="btn btn-primary btn-sm">开始练习</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div class="mb-4">
+                <h4 class="mb-3">子主题</h4>
+                <div class="list-group">
+                    {% for subtopic in subtopics %}
+                    <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                        <div>
+                            <div class="d-flex align-items-center">
+                                {{ subtopic }}
+                                <span class="badge bg-info rounded-pill ms-2">子主题</span>
+                            </div>
+                            
+                            {% if subtopic in progress %}
+                            <div class="mt-2">
+                                <div class="progress" style="height: 8px; width: 250px;">
+                                    <div class="progress-bar" role="progressbar" style="width: {{ progress[subtopic].percentage }}%" 
+                                         aria-valuenow="{{ progress[subtopic].percentage }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>
+                                <small>已完成: {{ progress[subtopic].answered }}/{{ progress[subtopic].total }} 题</small>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div>
+                            {% if subtopic in progress and progress[subtopic].answered > 0 %}
+                                <a href="{{ url_for('topic_quiz', topic=subtopic) }}" class="btn btn-outline-primary btn-sm">继续练习</a>
+                                <a href="{{ url_for('topic_quiz', topic=subtopic, new_session='true') }}" class="btn btn-outline-secondary btn-sm">重新开始</a>
+                            {% else %}
+                                <a href="{{ url_for('topic_quiz', topic=subtopic) }}" class="btn btn-primary btn-sm">开始练习</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <a href="{{ url_for('index') }}" class="btn btn-outline-primary">返回首页</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

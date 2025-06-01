@@ -1,0 +1,117 @@
+/* Custom styles for C919 Quiz Application */
+:root {
+    --primary-color: #3a86ff;
+    --secondary-color: #8338ec;
+    --accent-color: #ff006e;
+    --light-color: #ffffff;
+    --dark-color: #343a40;
+    --success-color: #28a745;
+    --danger-color: #dc3545;
+    --warning-color: #ffc107;
+    --info-color: #17a2b8;
+}
+
+body {
+    font-family: 'Arial', 'Noto Sans SC', sans-serif;
+    line-height: 1.6;
+}
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-primary:hover {
+    background-color: #2563eb;
+    border-color: #2563eb;
+}
+
+.btn-success {
+    background-color: var(--success-color);
+    border-color: var(--success-color);
+}
+
+.btn-outline-primary {
+    color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+.badge {
+    padding: 0.5em 0.8em;
+}
+
+.card {
+    border-radius: 10px;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.navbar {
+    border-radius: 0.5rem;
+}
+
+.progress-bar {
+    background-color: var(--primary-color);
+}
+
+.correct-answer {
+    background-color: rgba(40, 167, 69, 0.2);
+    border-color: var(--success-color);
+}
+
+.wrong-answer {
+    background-color: rgba(220, 53, 69, 0.2);
+    border-color: var(--danger-color);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .quiz-container {
+        padding: 10px;
+    }
+    
+    .answer-btn {
+        padding: 8px 12px;
+    }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+    body.dark-mode {
+        background-color: #121212;
+        color: #f8f9fa;
+    }
+    
+    body.dark-mode .card {
+        background-color: #2d2d2d;
+        color: #f8f9fa;
+    }
+    
+    body.dark-mode .navbar {
+        background-color: #2d2d2d !important;
+    }
+    
+    body.dark-mode .navbar-light .navbar-brand,
+    body.dark-mode .navbar-light .nav-link {
+        color: #f8f9fa;
+    }
+}
+
+/* Animation effects */
+.answer-btn {
+    transition: all 0.3s ease;
+}
+
+.answer-btn:hover {
+    transform: translateX(5px);
+}

@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+
+{% block title %}C919题库练习 - 题目{{ question_number }}/{{ total_questions }}{% endblock %}
+
+{% block content %}
+<div class="quiz-container">
+    <div class="card">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="card-title">题目 {{ question_number }}/{{ total_questions }}</h5>
+                <div class="badge bg-primary">{{ question.difficulty }}</div>
+            </div>
+            
+            <div class="progress mb-4">
+                <div id="progress-bar" class="progress-bar" role="progressbar" 
+                     style="width: 0%"
+                     aria-valuenow="0" 
+                     aria-valuemin="0" 
+                     aria-valuemax="100"></div>
+            </div>
+            
+            <div class="topic-info mb-3">
+                <span class="badge bg-secondary me-2">{{ question.topic }}</span>
+                {% if question.subtopic != "Unknown" %}
+                <span class="badge bg-info">{{ question.subtopic }}</span>
+                {% endif %}
+                {% if topic and topic != 'random' %}
+                <span class="badge bg-warning ms-2">主题练习: {{ topic }}</span>
+                {% endif %}
+            </div>
+            
+            <h5 class="card-text mb-4">{{ question.question }}</h5>
+            
+            <form id="answer-form">
+                {% for choice in question.choices %}
+                <button type="button" class="btn btn-outline-primary btn-lg answer-btn w-100 mb-2" data-answer="{{ loop.index0 | upper_alpha }}">
+                    <span class="choice-label">{{ loop.index0 | upper_alpha }}.</span> {{ choice }}
+                </button>
+                {% endfor %}
+            </form>
+            
+            <div id="feedback-container" class="mt-4 d-none">
+                <div class="alert" id="feedback-alert">
+                    <p id="feedback-text"></p>
+                </div>
+                <button id="next-btn" class="btn btn-success w-100">下一题</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 隐藏域，用于保存当前主题 -->
+<input type="hidden" id="current-topic" value="{{ topic|default('random', true) }}">
+{% endblock %}
+
+{% block head %}
+<style>
+    .choice-label {
+        font-weight: bold;
+        margin-right: 10px;
+    }
+    .answer-btn.correct-answer {
+        background-color: #d4edda !important;
+        border-color: #c3e6cb !important;
+        color: #155724 !important;
+    }
+    .answer-btn.wrong-answer {
+        background-color: #f8d7da !important;
+        border-color: #f5c6cb !important;
+        color: #721c24 !important;
+    }
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const answerButtons = document.querySelectorAll('.answer-btn');
+        const feedbackContainer = document.getElementById('feedback-container');
+        const feedbackAlert = document.getElementById('feedback-alert');
+        const feedbackText = document.getElementById('feedback-text');
+        const nextBtn = document.getElementById('next-btn');
+        const currentTopic = document.getElementById('current-topic').value;
+        
+        // 设置进度条
+        const progressBar = document.getElementById('progress-bar');
+        const questionNumber = {{ question_number }};
+        const totalQuestions = {{ total_questions }};
+        const progressPercent = Math.floor((questionNumber / totalQuestions) * 100);
+        progressBar.style.width = progressPercent + '%';
+        progressBar.setAttribute('aria-valuenow', progressPercent);
+        
+        console.log("Quiz page loaded with " + answerButtons.length + " answer buttons");
+        console.log("Current topic: " + currentTopic);
+        
+        answerButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const selectedAnswer = this.getAttribute('data-answer');
+                console.log("Selected answer: " + selectedAnswer);
+                
+                // Disable all buttons
+                answerButtons.forEach(btn => {
+                    btn.disabled = true;
+                });
+                
+                // Submit answer
+                fetch('{{ url_for("submit_answer") }}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'answer=' + encodeURIComponent(selectedAnswer)
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('服务器错误: ' + response.status);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log("Got response from server:", data);
+                    
+                    // 检查是否有错误
+                    if (data.error) {
+                        feedbackAlert.className = 'alert alert-danger';
+                        feedbackText.textContent = data.message || '提交答案时发生错误';
+                        feedbackContainer.classList.remove('d-none');
+                        
+                        // 如果有重定向，准备重定向
+                        if (data.redirect) {
+                            setTimeout(() => {
+                                window.location.href = data.redirect;
+                            }, 2000);
+                        }
+                        return;
+                    }
+                    
+                    // Show feedback
+                    feedbackContainer.classList.remove('d-none');
+                    
+                    if (data.is_correct) {
+                        feedbackAlert.className = 'alert alert-success';
+                        feedbackText.textContent = '回答正确！';
+                        this.classList.add('correct-answer');
+                    } else {
+                        feedbackAlert.className = 'alert alert-danger';
+                        feedbackText.textContent = '回答错误。正确答案是: ' + data.correct_answer;
+                        this.classList.add('wrong-answer');
+                        
+                        // Highlight the correct answer
+                        answerButtons.forEach(btn => {
+                            if (btn.getAttribute('data-answer') === data.correct_answer) {
+                                btn.classList.add('correct-answer');
+                            }
+                        });
+                    }
+                    
+                    // 保存当前主题以供"下一题"按钮使用
+                    document.getElementById('current-topic').value = data.topic || currentTopic;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    feedbackAlert.className = 'alert alert-danger';
+                    feedbackText.textContent = '提交答案时发生错误: ' + error.message;
+                    feedbackContainer.classList.remove('d-none');
+                    
+                    // 重新启用按钮
+                    setTimeout(() => {
+                        answerButtons.forEach(btn => {
+                            btn.disabled = false;
+                        });
+                    }, 1000);
+                });
+            });
+        });
+        
+        nextBtn.addEventListener('click', function() {
+            // 获取当前主题，如果存在的话
+            const topic = document.getElementById('current-topic').value;
+            if (topic && topic !== 'random') {
+                window.location.href = '{{ url_for("quiz") }}?topic=' + encodeURIComponent(topic);
+            } else {
+                window.location.href = '{{ url_for("next_question") }}';
+            }
+        });
+    });
+</script>
+{% endblock %} 
